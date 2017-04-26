@@ -380,9 +380,12 @@ public class Stopwatch {
 		if (save) out += "\"History\": " + history.toString().replace("\n", "\n\t") + "\n}";
 		else out += "\n}";
 		
-		if (!history.printBeautify) {
+		// meaning not beautiful
+		if (history == null || !history.printBeautify) {
 			out = out.replace("\"", "").replace("{\n\t", "").replace("\n}", "").replace("\n\t", "\n");
 		}
+		if (out.charAt(out.length() - 1) == '\n') out = out.substring(0, out.length() - 2); // delete new line
+		if (out.charAt(out.length() - 1) == ',') out = out.substring(0, out.length() - 2); // delete `,`
 		reset();
 		return out;
 	}
