@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * <b>Average</b> is around {@code 120 ns} <br>
  *
  * @author kamontat
- * @version 3.4
+ * @version 3.7
  * @since 9/22/2016 AD - 10:57 AM
  */
 public class Stopwatch {
@@ -272,28 +272,47 @@ public class Stopwatch {
 	 * With same type, To change new type use {@link #reset(Type)} instead
 	 */
 	public void reset() {
-		reset(null);
+		reset((Type) null);
 	}
 	
 	/**
-	 * reset current value, assign new type({@link Type}) of watch and save value to history (if save {@code on})
+	 * reset and save history with passing description <br>
+	 * For saving {@code on} only
+	 *
+	 * @param description
+	 * 		description history (eg. "run xx task")
+	 */
+	public void reset(String description) {
+		reset(null, description);
+	}
+	
+	/**
+	 * reset current value, assign new type({@link Type}) of watch and save value to history (if save {@code on}) with description is empty string
 	 *
 	 * @param type
 	 * 		new type or {@code null} if want old type (can use {@link #reset()}) instead
 	 */
 	public void reset(Type type) {
+		reset(type, "");
+	}
+	
+	/**
+	 * reset current value, assign new type({@link Type}) of watch and save value to history (if save {@code on}) with given description
+	 *
+	 * @param type
+	 * 		new type or {@code null} if want old type (can use {@link #reset()}) instead
+	 * @param description
+	 * 		saving description
+	 */
+	public void reset(Type type, String description) {
 		if (save) {
-			if (this.type == Type.DETAIL) history.add(stop - start, TimeUnit.NANOSECONDS);
-			else if (this.type == Type.NOT_DETAIL) history.add(stop - start, TimeUnit.MILLISECONDS);
+			if (this.type == Type.DETAIL) history.add(stop - start, TimeUnit.NANOSECONDS, description);
+			else if (this.type == Type.NOT_DETAIL) history.add(stop - start, TimeUnit.MILLISECONDS, description);
 		}
 		if (type != null) this.type = type;
 		start = DEFAULT_VALUE;
 		stop = DEFAULT_VALUE;
 		clearError();
-	}
-	
-	public void reset(Type type, String s) {
-	
 	}
 	
 	/**
@@ -307,17 +326,14 @@ public class Stopwatch {
 	/* --------------- Save Management --------------- */
 	
 	/**
-	 * start save when user call {@link #reset()} method
+	 * set saving feature when user call {@link #reset()} method, using as {@code false} if don't want to print history <br>
+	 * This method didn't clear array, to clear {@link #clearHistory()} instead
+	 *
+	 * @param isSave
+	 * 		is saving feature
 	 */
-	public void startSaving() {
-		save = true;
-	}
-	
-	/**
-	 * stop save, For good design you should call {@link #clearHistory()} after call this method
-	 */
-	public void stopSave() {
-		save = false;
+	public void setSave(boolean isSave) {
+		save = isSave;
 	}
 	
 	/**
@@ -341,13 +357,19 @@ public class Stopwatch {
 		history.clearAll();
 	}
 	
+	/* --------------- printing beautify --------------- */
+	
+	public void setPrintJSON(boolean enable) {
+		history.setPrintBeautify(enable);
+	}
+	
 	/**
 	 * print in format: <pre>{@code
 	 * Type: detail|not detail
 	 * Time: xxxx s(xxxxx ns|ms)
 	 * }</pre>
 	 * <br>
-	 * or json format (include history too, <b>BUT</b> if don't want to print history call {@link #stopSave()} before print)
+	 * or json format (include history too, <b>BUT</b> if don't want to print history call {@link #setSave(boolean)} with {@code false} before print)
 	 * And ths method already reset watch
 	 *
 	 * @return string
@@ -359,7 +381,7 @@ public class Stopwatch {
 		else out += "\n}";
 		
 		if (!history.printBeautify) {
-			out = out.replace("\"", "").replace("{", "").replace("}", "").replace("\t", "");
+			out = out.replace("\"", "").replace("{\n\t", "").replace("\n}", "").replace("\n\t", "\n");
 		}
 		reset();
 		return out;
@@ -410,7 +432,7 @@ public class Stopwatch {
 		 * add new time
 		 *
 		 * @param time
-		 * 		time to add
+		 * 		the saving time
 		 */
 		private void add(Time time) {
 			history.add(time);
@@ -422,10 +444,12 @@ public class Stopwatch {
 		 * @param value
 		 * 		time value
 		 * @param u
-		 * 		unit of the value
+		 * 		time unit
+		 * @param description
+		 * 		the description, explanation this saving time
 		 */
-		private void add(long value, TimeUnit u) {
-			add(new Time(value, u));
+		private void add(long value, TimeUnit u, String description) {
+			add(new Time(value, u, description));
 		}
 		
 		private void clearAll() {
@@ -478,9 +502,14 @@ public class Stopwatch {
 		
 		@Override
 		public String toString() {
-			String s = Arrays.toString(history.toArray(new Time[history.size()]));
-			if (printBeautify) return s.replace("[", "[\n\t").replace(",", ",\n\t").replace("]", "\n]");
-			else return s.replace("\"", "");
+			if (printBeautify) {
+				StringBuilder s = new StringBuilder("[\n\t");
+				for (Time t : history) {
+					s.append(t.toJSON()).append(",\n");
+				}
+				return s.append("]").toString().replace("{\n", "{\n\t").replace(",\n", ",\n\t").replace("\t]", "]");
+			} else
+				return Arrays.toString(history.toArray(new Time[history.size()])).replace("\"", "").replace("[", "[\n").replace(", ", ",\n").replace("\n", "\n\t").replace("]", "\n]");
 		}
 		
 		/**
@@ -497,19 +526,28 @@ public class Stopwatch {
 	 * Time class for saving elapsed times.
 	 */
 	public static class Time {
-		private static Time DEFAULT = new Time(0, TimeUnit.NANOSECONDS);
+		private static Time DEFAULT = new Time(0, TimeUnit.NANOSECONDS, "default");
 		
 		private double value;
 		private TimeUnit unit;
+		private String description;
 		
 		private Time(long value, TimeUnit unit) {
-			this.value = value;
-			this.unit = unit;
+			this(value, unit, "");
 		}
 		
 		private Time(double value, TimeUnit unit) {
+			this(value, unit, "");
+		}
+		
+		private Time(long value, TimeUnit unit, String explain) {
+			this((double) value, unit, explain);
+		}
+		
+		private Time(double value, TimeUnit unit, String explain) {
 			this.value = value;
 			this.unit = unit;
+			this.description = explain;
 		}
 		
 		/**
@@ -557,9 +595,21 @@ public class Stopwatch {
 			return unit.toMillis(getValue());
 		}
 		
+		public String toJSON() {
+			StringBuilder b = new StringBuilder("{\n\t");
+			b.append("\"description\": ");
+			b.append("\"").append(description).append("\",\n\t");
+			b.append("\"time\": ");
+			b.append("\"").append(Math.ceil(value % 1) != 0 ? String.format("%.2f", getValueD()): String.format("%d", getValue())).append("\",\n\t");
+			b.append("\"unit\": ");
+			b.append("\"").append(unit.name().toLowerCase(Locale.ENGLISH)).append("\",\n");
+			b.append("}");
+			return b.toString();
+		}
+		
 		@Override
 		public String toString() {
-			return "\"" + (Math.ceil(value % 1) != 0 ? String.format("%.2f", getValueD()): String.format("%d", getValue())) + " " + unit.name().toLowerCase(Locale.ENGLISH) + "\"";
+			return String.format("description: %s\ntime: %s\nunit: %s", description, Math.ceil(value % 1) != 0 ? String.format("%.2f", getValueD()): String.format("%d", getValue()), unit.name().toLowerCase(Locale.ENGLISH));
 		}
 	}
 }
