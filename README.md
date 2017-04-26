@@ -9,12 +9,10 @@
 # Result
 1. Concurrent Executor Service  
     - result: 5466518  
-    - Time: 13 s(13547070382 ns)  
-
+    - Time: 29 seconds *or* 29961962592 nanoseconds
 2. Concurrent Fork Join  
     - result: 5466518  
-    - Time: 9 s(9939258622 ns)  
-
+    - Time: 1.93 minute *or* 116 seconds *or* 116489037185 nanoseconds
 3. Concurrent Hash Map  
     - result: 5466518  
-    - Time: 66 s(66500373814 ns)
+    - Time: 1.92 minute *or* 115 seconds *or* 115918838957 nanoseconds
