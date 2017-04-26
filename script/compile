@@ -6,4 +6,7 @@ cd .. # root folder
 
 mkdir bin
 
-javac -d bin src/*.java
+find . -type f -name '*.java' > save.txt
+javac -d bin @save.txt
+
+rm save.txt

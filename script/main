@@ -3,4 +3,4 @@
 # go to current directory
 cd "$(dirname "$0")"
 
-./compile && ./run; ./clean
+./compile && ./run ; ./clean
