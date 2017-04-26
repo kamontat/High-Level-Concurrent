@@ -8,7 +8,12 @@ import java.util.concurrent.ExecutionException;
 // using concurrent HashMap
 public class ConcurrentHashMap_Main implements Calculation {
 	private static ConcurrentHashMap<Integer, String> map = new ConcurrentHashMap<>();
+	private final BufferedReader reader;
 	private long result;
+	
+	public ConcurrentHashMap_Main() {
+		reader = Constants.getBuffer();
+	}
 	
 	@Override
 	public long getResult() {
@@ -17,14 +22,11 @@ public class ConcurrentHashMap_Main implements Calculation {
 	
 	@Override
 	public void calculation() throws InterruptedException, ExecutionException {
-		result = map.reduceValuesToLong(10, value -> value.contains(Constants.CHECK_STRING) ? 1L: 0L, 0, (left, right) -> left + right);
+		result += map.reduceValuesToLong(10, value -> value.contains(Constants.CHECK_STRING) ? 1L: 0L, 0, (left, right) -> left + right);
 	}
 	
 	@Override
 	public void setArray() throws IOException {
-		BufferedReader reader = Constants.getBuffer();
-		assert reader != null;
-		
 		String line = "";
 		int i = 0;
 		while ((line = reader.readLine()) != null) {

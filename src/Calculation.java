@@ -22,7 +22,7 @@ public interface Calculation {
 	
 	void calculation() throws InterruptedException, ExecutionException;
 	
-	void setArray() throws IOException; // some class didn't implement
+	void setArray() throws IOException;
 	
-	void end();
+	void end(); // some class didn't implement
 }
