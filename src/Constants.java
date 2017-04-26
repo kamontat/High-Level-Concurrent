@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 public class Constants {
 	public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
 	
-	public static final File TEST_FILE = Paths.get(".", "02all.nt").toFile();
+	public static File TEST_FILE = Paths.get(".", "02all.nt").toFile();
 	public static final String CHECK_STRING = "<http://www.w3.org/2001/XMLSchema#string>";
 	
 	public static BufferedReader getBuffer() {
