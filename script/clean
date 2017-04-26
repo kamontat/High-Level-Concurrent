@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# go to current directory
+cd "$(dirname "$0")"
+cd ..
+
+rm -r bin

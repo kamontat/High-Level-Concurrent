@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# go to current directory
+cd "$(dirname "$0")"
+
+./compile && ./run; ./clean

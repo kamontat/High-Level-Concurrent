@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# go to current directory
+cd "$(dirname "$0")"
+cd ../bin # bin folder
+
+java -Xmx15G Main
