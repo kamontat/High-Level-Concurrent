@@ -12,7 +12,7 @@ public interface Calculation {
 		StringBuilder newString = new StringBuilder();
 		for (char c : s.toCharArray()) {
 			if (Character.isUpperCase(c)) newString.append(" ").append(c);
-			else if (c == '_') newString.append(" ");
+			else if (c == '_') newString.append("");
 			else newString.append(c);
 		}
 		return newString.toString().trim();
